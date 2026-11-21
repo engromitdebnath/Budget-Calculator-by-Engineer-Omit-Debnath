@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>মাসিক আয়, আসল খরচ ও ইনভেস্টমেন্ট ক্যালকুলেটর — Prepared by "OMIT DEBNATH"</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Hind Siliguri for crisp Bengali + English typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --font-sans: 'Inter', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: radial-gradient(circle at 12% 10%, #0f172a 0%, #020617 55%, #090d16 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+
+    /* Subtle ambient mesh glow */
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(600px circle at 85% 15%, rgba(16, 185, 129, 0.09), transparent 60%),
+        radial-gradient(550px circle at 15% 80%, rgba(59, 130, 246, 0.10), transparent 60%);
+    }
+
+    /* Glassmorphic Executive Cards */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .glass-subcard {
+      background: rgba(30, 41, 59, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      transition: all 0.22s ease;
+    }
+
+    .glass-subcard:hover {
+      border-color: rgba(148, 163, 184, 0.28);
+      background: rgba(30, 41, 59, 0.75);
+    }
+
+    /* Custom Precision Range Sliders */
+    input[type="range"].wealth-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(51, 65, 85, 0.9);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].wealth-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--slider-accent, #10b981);
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.45);
+      cursor: grab;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type="range"].wealth-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.16);
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12);
+    }
+
+    input[type="range"].wealth-slider::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.08);
+    }
+
+    input[type="range"].wealth-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--slider-accent, #10b981);
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.45);
+      cursor: grab;
+      transition: transform 0.15s ease;
+    }
+
+    /* Hide native number spinners for ultra-clean input */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    /* Smooth SVG Donut transitions */
+    .donut-segment {
+      transition: stroke-dasharray 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  stroke-dashoffset 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Toast animation */
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translate(-50%, 16px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .toast-show {
+      animation: slideUpFade 0.25s ease forwards;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+  <div class="ambient-glow"></div>
+
+  <!-- Main Container -->
+  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+    
+    <!-- Executive Header -->
+    <header class="glass-card rounded-3xl p-6 sm:p-8 mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/25 text-emerald-300 text-xs font-semibold tracking-wide mb-3">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          PERSONAL WEALTH & CASHFLOW ENGINE
+        </div>
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight leading-snug">
+          মাসিক আয়, আসল খরচ ও ইনভেস্টমেন্ট ক্যালকুলেটর
+        </h1>
+        <p class="mt-1.5 text-sm sm:text-base text-slate-300 font-medium flex items-center gap-2">
+          <i class="fa-solid fa-pen-nib text-emerald-400 text-xs"></i>
+          <span>Prepared by <strong class="text-white font-bold tracking-wide">"OMIT DEBNATH"</strong></span>
+        </p>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3">
+        <button id="resetBtn" type="button"
+          class="px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border border-slate-600/40 text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-rotate-left text-slate-400"></i>
+          Reset Defaults
+        </button>
+        <button id="copyTopBtn" type="button"
+          class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition flex items-center gap-2 cursor-pointer">
+          <i class="fa-regular fa-copy"></i>
+          Copy Summary for Word / PPT
+        </button>
+      </div>
+    </header>
+
+    <!-- 4 Executive KPI Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <!-- KPI 1: True Monthly Expenses -->
+      <div class="glass-card rounded-2xl p-5 border-t-2 border-t-amber-400/80">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">True Monthly Expenses</span>
+          <span class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-300 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-receipt"></i>
+          </span>
+        </div>
+        <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight" id="kpiTrueExp">৳60,000</div>
+        <div class="mt-2 flex items-center justify-between text-xs">
+          <span class="text-slate-400">আসল মাসিক খরচ</span>
+          <span id="kpiTrueExpPct" class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 font-bold">21.6%</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Fixed Investments (Flat + DPS) -->
+      <div class="glass-card rounded-2xl p-5 border-t-2 border-t-blue-500/90">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Fixed Investments</span>
+          <span class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-300 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-building-columns"></i>
+          </span>
+        </div>
+        <div class="text-2xl sm:text-3xl font-extrabold text-blue-300 tracking-tight" id="kpiFixedInv">৳135,000</div>
+        <div class="mt-2 flex items-center justify-between text-xs">
+          <span class="text-slate-400">ফ্ল্যাট + DPS</span>
+          <span id="kpiFixedInvPct" class="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300 font-bold">48.6%</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Net Free Surplus -->
+      <div class="glass-card rounded-2xl p-5 border-t-2 border-t-emerald-400/90">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Net Free Surplus</span>
+          <span class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-wallet"></i>
+          </span>
+        </div>
+        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 tracking-tight" id="kpiFreeSurplus">৳82,500</div>
+        <div class="mt-2 flex items-center justify-between text-xs">
+          <span class="text-slate-400">নতুন ইনভেস্ট / RMB</span>
+          <span id="kpiFreeSurplusPct" class="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 font-bold">29.7%</span>
+        </div>
+      </div>
+
+      <!-- KPI 4: Total Savings + Investment Rate -->
+      <div class="glass-card rounded-2xl p-5 border-t-2 border-t-teal-400/90">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Savings + Invest</span>
+          <span class="w-8 h-8 rounded-xl bg-teal-500/15 text-teal-300 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-chart-line"></i>
+          </span>
+        </div>
+        <div class="text-2xl sm:text-3xl font-extrabold text-teal-300 tracking-tight" id="kpiTotalSavRate">78.4%</div>
+        <div class="mt-2 flex items-center justify-between text-xs">
+          <span class="text-slate-400">মোট সম্পদ ও সঞ্চয়</span>
+          <span id="kpiTotalSavAmt" class="px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-200 font-bold">৳217,500</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main 2-Column Workspace -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Column (7 cols): Income + Dual-Sync Interactive Controls -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Monthly Income Control Card -->
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <label for="incomeInput" class="block text-sm font-bold text-white">
+                মাসিক আয় (Monthly Income)
+              </label>
+              <p class="text-xs text-slate-400 mt-0.5">যেকোনো অঙ্ক টাইপ করুন অথবা প্রিসেট বাটন চাপুন</p>
+            </div>
+            <!-- Quick Presets -->
+            <div class="flex items-center gap-2">
+              <button type="button" data-income="270000"
+                class="preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/40 transition cursor-pointer">
+                ৳270k
+              </button>
+              <button type="button" data-income="277500"
+                class="preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 transition cursor-pointer">
+                ৳277.5k
+              </button>
+              <button type="button" data-income="285000"
+                class="preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/40 transition cursor-pointer">
+                ৳285k
+              </button>
+            </div>
+          </div>
+
+          <div class="relative flex items-center bg-slate-900/90 border border-slate-700/80 focus-within:border-emerald-400 rounded-2xl px-4 py-3.5 transition">
+            <span class="text-xl font-bold text-emerald-400 mr-3">৳</span>
+            <input type="number" id="incomeInput" value="277500" min="0" step="500"
+              class="w-full bg-transparent text-2xl sm:text-3xl font-extrabold text-white outline-none tracking-tight" />
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-2">BDT / Month</span>
+          </div>
+        </div>
+
+        <!-- Category 1: True Monthly Expenses -->
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-700/60">
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.7)]"></span>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white">আসল মাসিক খরচ (True Monthly Expenses)</h2>
+                <p class="text-xs text-slate-400">যে খরচগুলো সরাসরি ব্যয় হয় (অ্যাসেট তৈরি করে না)</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-extrabold text-amber-300" id="catExpTotal">৳60,000</div>
+              <div class="text-xs font-semibold text-slate-400" id="catExpPct">আয়ের 21.6%</div>
+            </div>
+          </div>
+
+          <!-- Dynamic Expense Items Container -->
+          <div id="expenseItemsContainer" class="space-y-4"></div>
+
+          <!-- Add Custom Expense Item -->
+          <form id="addExpenseForm" class="mt-5 pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-2.5">
+            <input type="text" id="newExpName" placeholder="নতুন খরচের নাম (যেমন: Utility / Tour Fund)"
+              class="flex-1 bg-slate-900/80 border border-slate-700/70 focus:border-amber-400 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none" />
+            <div class="flex gap-2">
+              <div class="flex items-center bg-slate-900/80 border border-slate-700/70 focus-within:border-amber-400 rounded-xl px-3 py-2 w-32 sm:w-36">
+                <span class="text-amber-400 font-bold text-xs mr-1.5">৳</span>
+                <input type="number" id="newExpAmt" placeholder="0" min="0" step="500"
+                  class="w-full bg-transparent text-xs sm:text-sm font-bold text-white outline-none" />
+              </div>
+              <button type="submit"
+                class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 text-xs sm:text-sm font-bold transition whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-plus mr-1"></i> Add
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Category 2: Fixed Investments & Asset Commitments -->
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-700/60">
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></span>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white">ফিক্সড ইনভেস্টমেন্ট (Fixed Investments)</h2>
+                <p class="text-xs text-slate-400">ফ্ল্যাট, DPS ও নিয়মিত সম্পদ গড়ার কমিটমেন্ট</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-extrabold text-blue-300" id="catInvTotal">৳135,000</div>
+              <div class="text-xs font-semibold text-slate-400" id="catInvPct">আয়ের 48.6%</div>
+            </div>
+          </div>
+
+          <!-- Dynamic Investment Items Container -->
+          <div id="investItemsContainer" class="space-y-4"></div>
+
+          <!-- Add Custom Investment Item -->
+          <form id="addInvestForm" class="mt-5 pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-2.5">
+            <input type="text" id="newInvName" placeholder="নতুন ইনভেস্টমেন্ট (যেমন: Ekush SIP / RMB)"
+              class="flex-1 bg-slate-900/80 border border-slate-700/70 focus:border-blue-400 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none" />
+            <div class="flex gap-2">
+              <div class="flex items-center bg-slate-900/80 border border-slate-700/70 focus-within:border-blue-400 rounded-xl px-3 py-2 w-32 sm:w-36">
+                <span class="text-blue-400 font-bold text-xs mr-1.5">৳</span>
+                <input type="number" id="newInvAmt" placeholder="0" min="0" step="500"
+                  class="w-full bg-transparent text-xs sm:text-sm font-bold text-white outline-none" />
+              </div>
+              <button type="submit"
+                class="px-4 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-400/30 text-xs sm:text-sm font-bold transition whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-plus mr-1"></i> Add
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column (5 cols): Visual Analytics, Segmented Bar, Donut Chart & Export -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Visual Breakdown Card -->
+        <div class="glass-card rounded-3xl p-6 sticky top-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-emerald-400"></i>
+              লাইভ সম্পদ ও খরচ বিশ্লেষণ
+            </h2>
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              Real-time Sync
+            </span>
+          </div>
+
+          <!-- Sleek Segmented Horizontal Stacked Bar -->
+          <div class="mb-6">
+            <div class="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+              <span>মাসিক আয়ের ১০০% বণ্টন</span>
+              <span id="barStatusLabel" class="text-emerald-400">Balanced</span>
+            </div>
+            <div class="w-full h-4 rounded-full bg-slate-800 overflow-hidden flex p-0.5 gap-0.5 border border-slate-700/70">
+              <div id="segExp" class="h-full bg-amber-400 rounded-l-full transition-all duration-300" style="width: 21.6%;" title="True Expenses"></div>
+              <div id="segFixed" class="h-full bg-blue-500 transition-all duration-300" style="width: 48.6%;" title="Fixed Investments"></div>
+              <div id="segFree" class="h-full bg-emerald-400 rounded-r-full transition-all duration-300" style="width: 29.8%;" title="Net Free Surplus"></div>
+            </div>
+          </div>
+
+          <!-- Interactive SVG Donut Chart -->
+          <div class="relative flex items-center justify-center my-4">
+            <svg class="w-56 h-56 sm:w-64 sm:h-64 -rotate-90 transform" viewBox="0 0 200 200">
+              <!-- Background Track -->
+              <circle cx="100" cy="100" r="76" fill="transparent" stroke="rgba(51, 65, 85, 0.45)" stroke-width="22" />
+              <!-- Segment 1: True Expenses (Amber) -->
+              <circle id="donutExp" class="donut-segment" cx="100" cy="100" r="76" fill="transparent"
+                stroke="#fbbf24" stroke-width="22" stroke-linecap="butt"
+                stroke-dasharray="0 477.52" stroke-dashoffset="0" />
+              <!-- Segment 2: Fixed Investments (Royal Blue) -->
+              <circle id="donutFixed" class="donut-segment" cx="100" cy="100" r="76" fill="transparent"
+                stroke="#3b82f6" stroke-width="22" stroke-linecap="butt"
+                stroke-dasharray="0 477.52" stroke-dashoffset="0" />
+              <!-- Segment 3: Net Free Surplus (Emerald) -->
+              <circle id="donutFree" class="donut-segment" cx="100" cy="100" r="76" fill="transparent"
+                stroke="#34d399" stroke-width="22" stroke-linecap="butt"
+                stroke-dasharray="0 477.52" stroke-dashoffset="0" />
+            </svg>
+
+            <!-- Center Callout inside Donut -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-8">
+              <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-400">Savings + Invest</span>
+              <span id="donutCenterPct" class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">78.4%</span>
+              <span id="donutCenterAmt" class="text-xs font-bold text-emerald-400 mt-0.5">৳217,500</span>
+            </div>
+          </div>
+
+          <!-- Detailed Legend Breakdown -->
+          <div class="space-y-2.5 mt-4">
+            <div class="glass-subcard rounded-xl p-3 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                <div>
+                  <div class="text-xs sm:text-sm font-semibold text-white">আসল মাসিক খরচ</div>
+                  <div class="text-[11px] text-slate-400">True Expenses</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div id="legExpAmt" class="text-xs sm:text-sm font-bold text-amber-300">৳60,000</div>
+                <div id="legExpPct" class="text-[11px] font-semibold text-slate-400">21.6%</div>
+              </div>
+            </div>
+
+            <div class="glass-subcard rounded-xl p-3 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                <div>
+                  <div class="text-xs sm:text-sm font-semibold text-white">ফিক্সড ইনভেস্টমেন্ট</div>
+                  <div class="text-[11px] text-slate-400">Flat + DPS & Commitments</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div id="legFixedAmt" class="text-xs sm:text-sm font-bold text-blue-300">৳135,000</div>
+                <div id="legFixedPct" class="text-[11px] font-semibold text-slate-400">48.6%</div>
+              </div>
+            </div>
+
+            <div class="glass-subcard rounded-xl p-3 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                <div>
+                  <div class="text-xs sm:text-sm font-semibold text-white">নিট ফ্রি সারপ্লাস</div>
+                  <div class="text-[11px] text-slate-400">New Invest / RMB / Buffer</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div id="legFreeAmt" class="text-xs sm:text-sm font-bold text-emerald-300">৳82,500</div>
+                <div id="legFreePct" class="text-[11px] font-semibold text-slate-400">29.7%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deficit Alert Banner (Shown only if expenses + fixed > income) -->
+          <div id="deficitAlert" class="hidden mt-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2.5">
+            <i class="fa-solid fa-triangle-exclamation text-rose-400 mt-0.5"></i>
+            <div>
+              <strong>সতর্কতা:</strong> মোট খরচ ও ফিক্সড ইনভেস্টমেন্ট তোর মাসিক আয়ের চেয়ে বেশি হয়ে গেছে। স্লাইডার বা ইনকাম অ্যাডজাস্ট কর।
+            </div>
+          </div>
+
+          <!-- Bottom Export Button -->
+          <button id="copyBottomBtn" type="button"
+            class="mt-6 w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 hover:opacity-95 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/15 transition flex items-center justify-center gap-2.5 cursor-pointer">
+            <i class="fa-solid fa-file-export"></i>
+            Copy Summary for Word / PPT
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Floating Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden items-center gap-2.5 px-5 py-3 rounded-2xl bg-slate-900 border border-emerald-400/50 text-white text-sm font-semibold shadow-2xl">
+    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMsg">Summary copied to clipboard!</span>
+  </div>
+
+  <script>
+    // Default Dataset matching OMIT DEBNATH's financial structure
+    const DEFAULT_STATE = {
+      income: 277500,
+      expenses: [
+        { id: 'exp_family', label: 'ফ্যামিলি ও প্রিয়জন (Family & Dear Ones)', amount: 45000, max: 120000, step: 1000, removable: false },
+        { id: 'exp_living', label: 'নিজের লিভিং কস্ট (Personal Living Cost)', amount: 15000, max: 80000, step: 500, removable: false }
+      ],
+      investments: [
+        { id: 'inv_flat', label: 'ফ্ল্যাট ইনস্টলমেন্ট (Flat Instalment)', amount: 100000, max: 200000, step: 5000, removable: false },
+        { id: 'inv_dps', label: '২ ব্যাংকের DPS (2 Banks DPS)', amount: 35000, max: 100000, step: 1000, removable: false }
+      ]
+    };
+
+    // Deep clone helper
+    let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+    const fmtCurrency = (num) => {
+      const sign = num < 0 ? '-' : '';
+      return sign + '৳' + Math.abs(Math.round(num)).toLocaleString('en-US');
+    };
+
+    const fmtPct = (part, total) => {
+      if (!total || total <= 0) return '0.0%';
+      return ((part / total) * 100).toFixed(1) + '%';
+    };
+
+    // Render dual-sync items (Slider + Editable Input Box)
+    function renderItems(type) {
+      const container = document.getElementById(type === 'expenses' ? 'expenseItemsContainer' : 'investItemsContainer');
+      const items = state[type];
+      const accentColor = type === 'expenses' ? '#fbbf24' : '#3b82f6';
+      const badgeTextClass = type === 'expenses' ? 'text-amber-300' : 'text-blue-300';
+      const focusBorderClass = type === 'expenses' ? 'focus-within:border-amber-400' : 'focus-within:border-blue-400';
+
+      container.innerHTML = '';
+
+      items.forEach((item, index) => {
+        // Ensure slider max dynamically accommodates large manually typed values
+        const dynamicMax = Math.max(item.max, item.amount, 10000);
+
+        const row = document.createElement('div');
+        row.className = 'glass-subcard rounded-2xl p-4';
+        row.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs sm:text-sm font-semibold text-slate-100">${item.label}</span>
+              <span id="pct_${item.id}" class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 ${badgeTextClass}">0.0%</span>
+            </div>
+            ${item.removable ? `
+              <button type="button" data-remove-type="${type}" data-remove-idx="${index}"
+                class="text-slate-400 hover:text-rose-400 text-xs px-2 py-1 rounded-lg hover:bg-rose-500/10 transition cursor-pointer" title="Remove item">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            ` : ''}
+          </div>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div class="flex-1 flex items-center">
+              <input type="range" id="slider_${item.id}" class="wealth-slider"
+                style="--slider-accent: ${accentColor};"
+                min="0" max="${dynamicMax}" step="${item.step}" value="${item.amount}" />
+            </div>
+            <div class="flex items-center bg-slate-900/95 border border-slate-700/80 ${focusBorderClass} rounded-xl px-3 py-2 w-full sm:w-40 transition">
+              <span class="${badgeTextClass} font-bold text-sm mr-1.5">৳</span>
+              <input type="number" id="input_${item.id}" min="0" step="100" value="${item.amount}"
+                class="w-full bg-transparent text-right text-sm sm:text-base font-extrabold text-white outline-none" />
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+
+        const sliderEl = row.querySelector(`#slider_${item.id}`);
+        const inputEl = row.querySelector(`#input_${item.id}`);
+
+        // Slider -> Input sync
+        sliderEl.addEventListener('input', (e) => {
+          const val = Math.max(0, Number(e.target.value) || 0);
+          state[type][index].amount = val;
+          inputEl.value = val;
+          recalculate();
+        });
+
+        // Manual Input -> Slider sync
+        inputEl.addEventListener('input', (e) => {
+          const val = Math.max(0, Number(e.target.value) || 0);
+          state[type][index].amount = val;
+          if (val > Number(sliderEl.max)) {
+            sliderEl.max = val;
+          }
+          sliderEl.value = val;
+          recalculate();
+        });
+      });
+
+      // Attach remove handlers for custom items
+      container.querySelectorAll('[data-remove-type]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const t = btn.getAttribute('data-remove-type');
+          const idx = Number(btn.getAttribute('data-remove-idx'));
+          state[t].splice(idx, 1);
+          renderItems(t);
+          recalculate();
+        });
+      });
+    }
+
+    // Core calculation & UI/Chart synchronization
+    function recalculate() {
+      const income = Math.max(0, Number(state.income) || 0);
+      const trueExp = state.expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+      const fixedInv = state.investments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+      const totalSavInv = income - trueExp;
+      const freeSurplus = income - trueExp - fixedInv;
+
+      // Update per-item % badges
+      state.expenses.forEach((item) => {
+        const badge = document.getElementById(`pct_${item.id}`);
+        if (badge) badge.textContent = fmtPct(item.amount, income);
+      });
+      state.investments.forEach((item) => {
+        const badge = document.getElementById(`pct_${item.id}`);
+        if (badge) badge.textContent = fmtPct(item.amount, income);
+      });
+
+      // Top KPI Cards
+      document.getElementById('kpiTrueExp').textContent = fmtCurrency(trueExp);
+      document.getElementById('kpiTrueExpPct').textContent = fmtPct(trueExp, income);
+
+      document.getElementById('kpiFixedInv').textContent = fmtCurrency(fixedInv);
+      document.getElementById('kpiFixedInvPct').textContent = fmtPct(fixedInv, income);
+
+      const freeEl = document.getElementById('kpiFreeSurplus');
+      freeEl.textContent = fmtCurrency(freeSurplus);
+      freeEl.className = `text-2xl sm:text-3xl font-extrabold tracking-tight ${freeSurplus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      document.getElementById('kpiFreeSurplusPct').textContent = fmtPct(freeSurplus, income);
+
+      const savRateEl = document.getElementById('kpiTotalSavRate');
+      savRateEl.textContent = fmtPct(totalSavInv, income);
+      savRateEl.className = `text-2xl sm:text-3xl font-extrabold tracking-tight ${totalSavInv >= 0 ? 'text-teal-300' : 'text-rose-400'}`;
+      document.getElementById('kpiTotalSavAmt').textContent = fmtCurrency(totalSavInv);
+
+      // Category Subtotals
+      document.getElementById('catExpTotal').textContent = fmtCurrency(trueExp);
+      document.getElementById('catExpPct').textContent = `আয়ের ${fmtPct(trueExp, income)}`;
+
+      document.getElementById('catInvTotal').textContent = fmtCurrency(fixedInv);
+      document.getElementById('catInvPct').textContent = `আয়ের ${fmtPct(fixedInv, income)}`;
+
+      // Legend Updates
+      document.getElementById('legExpAmt').textContent = fmtCurrency(trueExp);
+      document.getElementById('legExpPct').textContent = fmtPct(trueExp, income);
+
+      document.getElementById('legFixedAmt').textContent = fmtCurrency(fixedInv);
+      document.getElementById('legFixedPct').textContent = fmtPct(fixedInv, income);
+
+      document.getElementById('legFreeAmt').textContent = fmtCurrency(freeSurplus);
+      document.getElementById('legFreePct').textContent = fmtPct(freeSurplus, income);
+
+      // Donut Center
+      document.getElementById('donutCenterPct').textContent = fmtPct(totalSavInv, income);
+      document.getElementById('donutCenterAmt').textContent = fmtCurrency(totalSavInv);
+
+      // Deficit warning toggle
+      const deficitAlert = document.getElementById('deficitAlert');
+      const barStatus = document.getElementById('barStatusLabel');
+      if (freeSurplus < 0) {
+        deficitAlert.classList.remove('hidden');
+        barStatus.textContent = 'Over-allocated!';
+        barStatus.className = 'text-rose-400 font-bold';
+      } else {
+        deficitAlert.classList.add('hidden');
+        barStatus.textContent = `Surplus: ${fmtPct(freeSurplus, income)}`;
+        barStatus.className = 'text-emerald-400 font-bold';
+      }
+
+      // Update Segmented Bar & SVG Donut Chart
+      updateCharts(income, trueExp, fixedInv, Math.max(0, freeSurplus));
+      highlightPresetButton(income);
+    }
+
+    function updateCharts(income, exp, fixed, free) {
+      const total = income > 0 ? Math.max(income, exp + fixed) : 1;
+      const expShare = Math.max(0, Math.min(1, exp / total));
+      const fixedShare = Math.max(0, Math.min(1 - expShare, fixed / total));
+      const freeShare = Math.max(0, 1 - expShare - fixedShare);
+
+      // Horizontal stacked bar widths
+      document.getElementById('segExp').style.width = (expShare * 100).toFixed(2) + '%';
+      document.getElementById('segFixed').style.width = (fixedShare * 100).toFixed(2) + '%';
+      document.getElementById('segFree').style.width = (freeShare * 100).toFixed(2) + '%';
+
+      // SVG Donut geometry (r = 76 => circumference = 2 * PI * 76 ≈ 477.522)
+      const C = 2 * Math.PI * 76;
+      const expLen = expShare * C;
+      const fixedLen = fixedShare * C;
+      const freeLen = freeShare * C;
+
+      const donutExp = document.getElementById('donutExp');
+      const donutFixed = document.getElementById('donutFixed');
+      const donutFree = document.getElementById('donutFree');
+
+      donutExp.setAttribute('stroke-dasharray', `${expLen} ${C}`);
+      donutExp.setAttribute('stroke-dashoffset', '0');
+
+      donutFixed.setAttribute('stroke-dasharray', `${fixedLen} ${C}`);
+      donutFixed.setAttribute('stroke-dashoffset', `${-expLen}`);
+
+      donutFree.setAttribute('stroke-dasharray', `${freeLen} ${C}`);
+      donutFree.setAttribute('stroke-dashoffset', `${-(expLen + fixedLen)}`);
+    }
+
+    function highlightPresetButton(income) {
+      document.querySelectorAll('.preset-btn').forEach((btn) => {
+        const val = Number(btn.getAttribute('data-income'));
+        if (val === income) {
+          btn.className = 'preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 transition cursor-pointer';
+        } else {
+          btn.className = 'preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/40 transition cursor-pointer';
+        }
+      });
+    }
+
+    // Toast Notification
+    let toastTimer = null;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = message;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex', 'toast-show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex', 'toast-show');
+      }, 3200);
+    }
+
+    // Build Clean Word / PPT Report & Copy with Fallback
+    function copyReport() {
+      const income = Math.max(0, Number(state.income) || 0);
+      const trueExp = state.expenses.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+      const fixedInv = state.investments.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+      const totalSavInv = income - trueExp;
+      const freeSurplus = income - trueExp - fixedInv;
+
+      const expLines = state.expenses
+        .map((i) => `  • ${i.label}: ${fmtCurrency(i.amount)} (${fmtPct(i.amount, income)})`)
+        .join('\n');
+
+      const invLines = state.investments
+        .map((i) => `  • ${i.label}: ${fmtCurrency(i.amount)} (${fmtPct(i.amount, income)})`)
+        .join('\n');
+
+      const report =
+        `Prepared by "OMIT DEBNATH"\n` +
+        `==================================================\n` +
+        `মাসিক আয়, আসল খরচ ও ইনভেস্টমেন্ট সারসংক্ষেপ\n` +
+        `==================================================\n` +
+        `মাসিক আয় (Monthly Income): ${fmtCurrency(income)}\n\n` +
+        `১. আসল মাসিক খরচ (True Monthly Expenses): ${fmtCurrency(trueExp)} (${fmtPct(trueExp, income)})\n` +
+        `${expLines}\n\n` +
+        `২. ফিক্সড ইনভেস্টমেন্ট (Fixed Investments): ${fmtCurrency(fixedInv)} (${fmtPct(fixedInv, income)})\n` +
+        `${invLines}\n\n` +
+        `৩. নিট ফ্রি সারপ্লাস (Net Free Surplus / RMB / Liquid): ${fmtCurrency(freeSurplus)} (${fmtPct(freeSurplus, income)})\n` +
+        `--------------------------------------------------\n` +
+        `মোট সেভিংস ও ইনভেস্টমেন্ট (Total Savings + Invest): ${fmtCurrency(totalSavInv)} (${fmtPct(totalSavInv, income)})`;
+
+      // Use execCommand fallback first for universal local/iframe compatibility
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = report;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (success) {
+          showToast('Prepared by "OMIT DEBNATH" সহ পুরো হিসাব কপি হয়েছে! Word বা PPT-তে Ctrl+V দিন।');
+          return;
+        }
+      } catch (err) {
+        // Fallback to Clipboard API if available
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(report).then(() => {
+          showToast('Prepared by "OMIT DEBNATH" সহ পুরো হিসাব কপি হয়েছে!');
+        }).catch(() => {
+          showToast('কপি করা সম্ভব হয়নি—অনুগ্রহ করে ম্যানুয়ালি সিলেক্ট করুন।');
+        });
+      }
+    }
+
+    // Event Listeners
+    document.getElementById('incomeInput').addEventListener('input', (e) => {
+      state.income = Math.max(0, Number(e.target.value) || 0);
+      recalculate();
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const val = Number(btn.getAttribute('data-income'));
+        state.income = val;
+        document.getElementById('incomeInput').value = val;
+        recalculate();
+      });
+    });
+
+    document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('newExpName');
+      const amtInput = document.getElementById('newExpAmt');
+      const label = nameInput.value.trim();
+      const amount = Math.max(0, Number(amtInput.value) || 0);
+      if (!label) {
+        showToast('খরচের একটি নাম লিখুন।');
+        return;
+      }
+      state.expenses.push({
+        id: 'exp_' + Date.now(),
+        label,
+        amount,
+        max: Math.max(100000, amount * 2),
+        step: 500,
+        removable: true
+      });
+      nameInput.value = '';
+      amtInput.value = '';
+      renderItems('expenses');
+      recalculate();
+      showToast(`"${label}" খরচের তালিকায় যোগ হয়েছে।`);
+    });
+
+    document.getElementById('addInvestForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('newInvName');
+      const amtInput = document.getElementById('newInvAmt');
+      const label = nameInput.value.trim();
+      const amount = Math.max(0, Number(amtInput.value) || 0);
+      if (!label) {
+        showToast('ইনভেস্টমেন্টের একটি নাম লিখুন।');
+        return;
+      }
+      state.investments.push({
+        id: 'inv_' + Date.now(),
+        label,
+        amount,
+        max: Math.max(150000, amount * 2),
+        step: 1000,
+        removable: true
+      });
+      nameInput.value = '';
+      amtInput.value = '';
+      renderItems('investments');
+      recalculate();
+      showToast(`"${label}" ইনভেস্টমেন্ট তালিকায় যোগ হয়েছে।`);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      document.getElementById('incomeInput').value = state.income;
+      renderItems('expenses');
+      renderItems('investments');
+      recalculate();
+      showToast('ডিফল্ট হিসাবে রিসেট করা হয়েছে।');
+    });
+
+    document.getElementById('copyTopBtn').addEventListener('click', copyReport);
+    document.getElementById('copyBottomBtn').addEventListener('click', copyReport);
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      renderItems('expenses');
+      renderItems('investments');
+      recalculate();
+    });
+  </script>
+</body>
+</html>
